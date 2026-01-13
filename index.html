@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Slot Simulator</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .slot-machine {
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.5), inset 0 0 10px rgba(0,0,0,0.8);
+            text-align: center;
+            border: 2px solid #ff0080;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        h1 {
+            margin-top: 0;
+            text-shadow: 0 0 10px #ff0080;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .reels-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #000;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #333;
+        }
+
+        .reel {
+            background: #fff;
+            color: #333;
+            width: 80px;
+            height: 100px;
+            font-size: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+
+        .reel.spinning {
+            animation: blur 0.1s infinite;
+            color: #ff0080; /* Warna saat berputar */
+        }
+
+        @keyframes blur {
+            0% { filter: blur(0px); transform: translateY(-2px); }
+            50% { filter: blur(2px); transform: translateY(2px); }
+            100% { filter: blur(0px); transform: translateY(-2px); }
+        }
+
+        .status {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            height: 30px;
+            color: #00e5ff;
+            text-shadow: 0 0 5px #00e5ff;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .balance {
+            font-size: 1.1rem;
+            background: #222;
+            padding: 10px 20px;
+            border-radius: 50px;
+            border: 1px solid #444;
+        }
+
+        button {
+            background: linear-gradient(to bottom, #ff0080, #b30059);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 0, 128, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        button:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 5px rgba(255, 0, 128, 0.4);
+        }
+
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .win-anim {
+            animation: pulse 0.5s 3;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 rgba(0, 229, 255, 0); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px #00e5ff; }
+            100% { transform: scale(1); box-shadow: 0 0 0 rgba(0, 229, 255, 0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="slot-machine">
+    <h1>NEON SLOTS</h1>
+    
+    <div class="reels-container">
+        <div class="reel" id="reel1">🍒</div>
+        <div class="reel" id="reel2">🍋</div>
+        <div class="reel" id="reel3">💎</div>
+    </div>
+
+    <div class="status" id="status">Siap untuk bermain!</div>
+
+    <div class="controls">
+        <div class="balance">Saldo: $<span id="balance">100</span></div>
+        <button id="spinBtn" onclick="spin()">SPIN ($10)</button>
+    </div>
+</div>
+
+<script>
+    const symbols = ['🍒', '🍋', '🍇', '🍉', '🔔', '💎', '7️⃣'];
+    const cost = 10;
+    let balance = 100;
+    
+    const reel1 = document.getElementById('reel1');
+    const reel2 = document.getElementById('reel2');
+    const reel3 = document.getElementById('reel3');
+    const statusDiv = document.getElementById('status');
+    const balanceSpan = document.getElementById('balance');
+    const spinBtn = document.getElementById('spinBtn');
+
+    function getRandomSymbol() {
+        return symbols[Math.floor(Math.random() * symbols.length)];
+    }
+
+    function spin() {
+        if (balance < cost) {
+            statusDiv.textContent = "Saldo tidak cukup!";
+            statusDiv.style.color = "#ff4444";
+            return;
+        }
+
+        // Kurangi saldo dan nonaktifkan tombol
+        balance -= cost;
+        balanceSpan.textContent = balance;
+        spinBtn.disabled = true;
+        statusDiv.textContent = "Memutar...";
+        statusDiv.style.color = "#00e5ff";
+        
+        // Hapus class animasi sebelumnya
+        reel1.classList.remove('win-anim');
+        reel2.classList.remove('win-anim');
+        reel3.classList.remove('win-anim');
+        document.querySelector('.slot-machine').classList.remove('win-anim');
+
+        // Mulai efek putar
+        reel1.classList.add('spinning');
+        reel2.classList.add('spinning');
+        reel3.classList.add('spinning');
+
+        // Logika berhenti reel satu per satu
+        setTimeout(() => stopReel(reel1), 1000);
+        setTimeout(() => stopReel(reel2), 1500);
+        setTimeout(() => stopReel(reel3, true), 2000);
+    }
+
+    function stopReel(reelElement, isLast = false) {
+        reelElement.classList.remove('spinning');
+        reelElement.textContent = getRandomSymbol();
+
+        if (isLast) {
+            checkWin();
+            spinBtn.disabled = false;
+        }
+    }
+
+    function checkWin() {
+        const r1 = reel1.textContent;
+        const r2 = reel2.textContent;
+        const r3 = reel3.textContent;
+
+        if (r1 === r2 && r2 === r3) {
+            // JACKPOT
+            let prize = 0;
+            if (r1 === '7️⃣' || r1 === '💎') prize = 500;
+            else prize = 100;
+
+            balance += prize;
+            balanceSpan.textContent = balance;
+            statusDiv.textContent = `JACKPOT! Kamu menang $${prize}!`;
+            statusDiv.style.color = "#00ff00";
+            
+            // Efek animasi menang
+            document.querySelector('.slot-machine').classList.add('win-anim');
+            reel1.classList.add('win-anim');
+            reel2.classList.add('win-anim');
+            reel3.classList.add('win-anim');
+        } else if (r1 === r2 || r2 === r3 || r1 === r3) {
+            // Menang kecil (2 gambar sama)
+            let prize = 20;
+            balance += prize;
+            balanceSpan.textContent = balance;
+            statusDiv.textContent = `Bagus! Kamu menang $${prize}!`;
+            statusDiv.style.color = "#ffff00";
+        } else {
+            statusDiv.textContent = "Coba lagi!";
+            statusDiv.style.color = "#ff4444";
+        }
+    }
+</script>
+
+</body>
+</html>
